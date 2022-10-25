@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use walkdir::{DirEntry, WalkDir};
 // use std::{fs::File, io::BufReader};
 use std::error::Error;
 use std::fs;
@@ -221,14 +222,26 @@ fn find_changelog_file() -> String {
     String::from("CHANGELOG.md")
 }
 
-fn find_changelogs() -> Vec<String> {
-    // TODO: Format -> "<prefix>_<ticket_number>_<action>.md"
+fn find_changelogs(folder_path: String) -> Vec<String> {
+    // TODO: Format -> <ticket_number>_<action>_<random>.md"
 
-    // TODO: find it by real!
-    vec![
-        String::from("changelogs/one.md"),
-        String::from("changelogs/two.md"),
-    ]
+    let mut file_paths: Vec<String> = Vec::new();
+    println!("find_changelogs: searching in '{}'", folder_path);
+
+    WalkDir::new(folder_path)
+        .into_iter()
+        // .filter_entry(|e| !is_hidden(e))
+        .filter_map(|v| v.ok())
+        .for_each(|x| {
+            if x.depth() != 1 {
+                // Ignore everything which isn't a direct
+                // descendant of 'folder_path'
+                return;
+            }
+            // println!("Visible: {}", path);
+            file_paths.push(String::from(x.path().to_str().expect("will work")));
+        });
+    return file_paths;
 }
 
 fn main() {
@@ -241,20 +254,23 @@ fn main() {
     // 1. Find the changelog file
 
     // 2. Find the changelogs to add
+    let file_paths = find_changelogs(changelogs_folder_path);
+
+    println!("{:?}", file_paths);
 
     // 3. Parse the changelogs (create the entries)
     let changelog = read_file(changelog_file.clone()).expect("seems like this program crashed..:/");
 
-    println!("\n");
-    println!("\n");
-    println!("====== Changelog Debug ======");
-    println!("{:?}", changelog);
+    // println!("\n");
+    // println!("\n");
+    // println!("====== Changelog Debug ======");
+    // println!("{:?}", changelog);
 
     let stringified = convert_changelog_to_string(changelog);
-    println!("\n");
-    println!("\n");
-    println!("====== Stringified Debug ======");
-    println!("{}", stringified);
+    // println!("\n");
+    // println!("\n");
+    // println!("====== Stringified Debug ======");
+    // println!("{}", stringified);
 
     // 4. Add the changelogs
 
