@@ -8,6 +8,8 @@ use std::error::Error;
 use std::fs;
 use walkdir::WalkDir;
 
+use crate::entities::ChangelogEntry;
+
 fn read_file(path: String) -> Result<Changelog, Box<dyn Error>> {
     // let error_msg = format!("Couldn't open file {}!", path);
     // TODO: proper error handling
@@ -21,6 +23,16 @@ fn read_file(path: String) -> Result<Changelog, Box<dyn Error>> {
 fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
     let out: String = fs::read_to_string(&path)?.parse()?;
     Ok(out)
+}
+
+fn write_string_to_file(path: String, content: String) -> Result<(), Box<dyn Error>> {
+    // TODO: Later "write_all_at"
+
+    // let mut file = File::create(path)?;
+    // file.write_all(b"Hello, world!")?;
+
+    fs::write(path, content)?;
+    Ok(())
 }
 
 fn find_changelogs_folder() -> String {
@@ -198,8 +210,34 @@ fn main() {
         // })
         .collect();
 
+    let grouped = group_by_section(result);
+
+    let lines: Vec<String> = grouped
+        .into_iter()
+        .map(|(k, v)| {
+            let section_name = k.clone();
+
+            let lines = v
+                .into_iter()
+                .map(|ve| {
+                    // Create text rows from FileEntry
+                    return format!("[{}] {}", ve.ticket_reference, ve.content);
+                })
+                .collect::<Vec<String>>();
+
+            return format!("### {}\n- {}", section_name, lines.join("\n- "));
+        })
+        .collect();
+
+    let combined_lines = lines.join("\n");
+    println!("");
+    println!("");
+    println!("");
+    println!("{:?}", combined_lines);
+
+    let _ = write_string_to_file("my_new_changelog.md".to_owned(), combined_lines);
+
     // TODO
-    // -- Group by section
     // -- Order by ticket_reference
     // -- Order by section
     //
