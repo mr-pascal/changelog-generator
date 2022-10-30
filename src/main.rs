@@ -3,9 +3,10 @@ mod parser;
 
 use entities::Changelog;
 use parser::{convert_changelog_to_string, convert_string_to_changelog};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
-use walkdir::{DirEntry, WalkDir};
+use walkdir::WalkDir;
 
 fn read_file(path: String) -> Result<Changelog, Box<dyn Error>> {
     // let error_msg = format!("Couldn't open file {}!", path);
@@ -15,6 +16,11 @@ fn read_file(path: String) -> Result<Changelog, Box<dyn Error>> {
     let ch = convert_string_to_changelog(changelog_string);
 
     Ok(ch)
+}
+
+fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
+    let out: String = fs::read_to_string(&path)?.parse()?;
+    Ok(out)
 }
 
 fn find_changelogs_folder() -> String {
@@ -27,10 +33,19 @@ fn find_changelog_file() -> String {
     String::from("CHANGELOG.md")
 }
 
-fn find_changelogs(folder_path: String) -> Vec<String> {
+#[derive(Clone, Debug)]
+struct FileEntry {
+    file_name: String,
+    path: String,
+    content: String,
+    ticket_reference: String,
+    section: String,
+}
+
+fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
     // TODO: Format -> <ticket_number>_<action>_<random>.md"
 
-    let mut file_paths: Vec<String> = Vec::new();
+    let mut file_entries: Vec<FileEntry> = vec![];
     println!("find_changelogs: searching in '{}'", folder_path);
 
     WalkDir::new(folder_path)
@@ -43,10 +58,100 @@ fn find_changelogs(folder_path: String) -> Vec<String> {
                 // descendant of 'folder_path'
                 return;
             }
-            // println!("Visible: {}", path);
-            file_paths.push(String::from(x.path().to_str().expect("will work")));
+
+            file_entries.push(FileEntry {
+                file_name: x.file_name().to_str().unwrap().to_owned(), // TODO2: Maybe some error handling later
+                path: x.path().to_str().unwrap().to_owned(), // TODO2: maybe some error handling later
+                content: String::from(""),
+                ticket_reference: String::from(""),
+                section: String::from(""),
+            });
         });
-    return file_paths;
+    return file_entries;
+}
+
+fn parse_file_name(name: String) -> (String, String) {
+    // convention: "TICKTET_NUMBER_SECTION_RND"
+    let splitted: Vec<&str> = name.split("_").collect();
+    let ticket_reference: &str = splitted.get(0).unwrap(); // TODO2: error handling
+    let section: &str = splitted.get(1).unwrap(); // TODO2: error handling
+    (String::from(ticket_reference), String::from(section))
+}
+
+fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntry>> {
+    let mut hm: HashMap<String, Vec<FileEntry>> = HashMap::new();
+    entries.into_iter().for_each(|entry| {
+        let section: String = entry.section.clone();
+        if !hm.contains_key(&section) {
+            // nothing in there yet
+            hm.insert(section.clone(), vec![]);
+        }
+        // get mut so we don't have to re-insert it
+        let v = hm.get_mut(&section).unwrap(); // TODO2: error handling
+        v.push(entry);
+    });
+    return hm;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_file_name() -> Result<(), String> {
+        let tr = String::from("AI-123");
+        let section = String::from("changed");
+        let name = format!("{}_{}_123.md", tr, section);
+
+        // TODO: template string instead of copy&paste
+        assert_eq!(parse_file_name(name), (tr, section));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_group_by_section() -> Result<(), String> {
+        let a = FileEntry {
+            file_name: "a".to_owned(),
+            path: "a".to_owned(),
+            content: "a".to_owned(),
+            section: "a".to_owned(),
+            ticket_reference: "a".to_owned(),
+        };
+        let b = FileEntry {
+            file_name: "b".to_owned(),
+            path: "b".to_owned(),
+            content: "b".to_owned(),
+            section: "a".to_owned(),
+            ticket_reference: "b".to_owned(),
+        };
+        let c = FileEntry {
+            file_name: "c".to_owned(),
+            path: "c".to_owned(),
+            content: "c".to_owned(),
+            section: "c".to_owned(),
+            ticket_reference: "c".to_owned(),
+        };
+
+        let entries = vec![a.clone(), b.clone(), c.clone()];
+        let expected: HashMap<String, Vec<FileEntry>> = HashMap::from([
+            (a.section.clone(), vec![a, b]),
+            (c.section.clone(), vec![c]),
+        ]);
+        let grouped = group_by_section(entries);
+        grouped.keys().for_each(|g| {
+            assert_eq!(expected.contains_key(g), true);
+        });
+
+        for (k, v) in grouped {
+            // Only checking "roughly"
+            // no in-depth checks for actual content
+            assert_eq!(expected.contains_key(&k), true);
+            assert_eq!(expected.get(&k).unwrap().len(), v.len());
+        }
+
+        Ok(())
+    }
 }
 
 fn main() {
@@ -59,14 +164,46 @@ fn main() {
 
     // 2. Find the changelogs to add
     let changelogs_folder_path = String::from("examples/demo1/changelogs");
-    let file_paths = find_changelogs(changelogs_folder_path);
-    println!("Found files: {:?}", file_paths);
+    let file_entries = find_changelogs(changelogs_folder_path);
+    println!(
+        "Found files: {:?}",
+        file_entries
+            .iter()
+            .map(|a| &a.path)
+            .collect::<Vec<&String>>()
+    );
+
+    // 3. Read the files
+    // TODO2: for "practice sake" use tokio spawn to read the files concurrently?
+    //        Could also add some benchmarking if it improves performance
+    let result: Vec<FileEntry> = file_entries
+        .into_iter()
+        .map(|entry| {
+            // TODO2: imperative approach is most likely faster
+            let content = read_file_to_string(entry.path.clone()).unwrap(); //TODO2: error handling
+            let (ticket_reference, section) = parse_file_name(entry.file_name.clone());
+
+            // TODO2: create FileEntry constructur, to prevent manual copy
+            return FileEntry {
+                path: entry.path,
+                file_name: entry.file_name,
+                content,
+                section,
+                ticket_reference,
+            };
+        })
+        // .inspect(|x| {
+        //     println!("");
+        //     println!("{:?}", x);
+        // })
+        .collect();
 
     // TODO
-    // -- Read the files
-    // -- get filename from pile path
-    // -- hashmap <filename, file string content>
-    // -- Convert file string content to ChangelogEntry
+    // -- Group by section
+    // -- Order by ticket_reference
+    // -- Order by section
+    //
+    // -- Convert to ChangelogEntry
     // -- write changelogentry into CHANGELOG.md
 
     // Parse the changelogs (create the entries)
