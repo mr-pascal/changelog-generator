@@ -1,11 +1,11 @@
 mod entities;
 mod parser;
-
 use entities::Changelog;
 use parser::{convert_changelog_to_string, convert_string_to_changelog};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
+use std::os::unix::prelude::FileExt;
 use walkdir::WalkDir;
 
 use crate::entities::ChangelogEntry;
@@ -172,18 +172,15 @@ fn main() {
     // TODO: paths should be passed via config later
 
     // 1. Find the changelog file
-    let changelog_file = String::from("examples/demo1/CHANGELOG.md");
+    // The initial changelog
+    let changelog_file_path = String::from("examples/demo1/CHANGELOG.md");
+
+    // Use this file to write the new changelog to TODO -> Will later be the same as the old one
+    let changelog_file_path2 = String::from("examples/demo1/CHANGELOG2.md");
 
     // 2. Find the changelogs to add
     let changelogs_folder_path = String::from("examples/demo1/changelogs");
     let file_entries = find_changelogs(changelogs_folder_path);
-    println!(
-        "Found files: {:?}",
-        file_entries
-            .iter()
-            .map(|a| &a.path)
-            .collect::<Vec<&String>>()
-    );
 
     // 3. Read the files
     // TODO2: for "practice sake" use tokio spawn to read the files concurrently?
@@ -232,10 +229,45 @@ fn main() {
     let combined_lines = lines.join("\n");
     println!("");
     println!("");
-    println!("");
-    println!("{:?}", combined_lines);
+    // println!("");
+    // println!("{:?}", combined_lines);
 
-    let _ = write_string_to_file("my_new_changelog.md".to_owned(), combined_lines);
+    // TODO-NEXT
+    // - read actual changelog file
+
+    println!("Try to write into file...");
+    let old_changelog_content = read_file_to_string(changelog_file_path.clone()).unwrap(); // TODO2: Error handling
+    let split_pattern = "\n## ";
+    let mut splitted: Vec<&str> = old_changelog_content.splitn(2, split_pattern).collect();
+    println!("{:?}", splitted);
+
+    // Re-Add the pattern that was "splitted" away
+    let second_part = splitted.get(1).unwrap();
+    let loc = &format!("{}{}", split_pattern, second_part);
+    splitted[1] = loc;
+
+    // splitted.insert(1, "\n"); // add a bit of space between entries
+    splitted.insert(1, &combined_lines); // Add the actual new lines
+
+    // Combine all the text again and write it
+    let final_text = splitted.join("\n");
+    write_string_to_file(changelog_file_path2, final_text).unwrap();
+
+    // let f = fs::File::create(changelog_file_path2).expect("Couldn't open file!"); // TODO2: file handler from "read_file_to_string" shoudl be re-used
+
+    // let buffered_lines = combined_lines.as_bytes();
+    // let u64_position = u64::try_from(found_last_version_at).expect("conversion failed...");
+    // f.write_all_at(buffered_lines, u64_position)
+    // .expect("write_all_at failed");
+
+    println!("did it worked?");
+    // - find position to insert
+    // - insert new point at position
+
+    // TODO-Next
+    // - Write version
+
+    // let _ = write_string_to_file("my_new_changelog.md".to_owned(), combined_lines);
 
     // TODO
     // -- Order by ticket_reference
