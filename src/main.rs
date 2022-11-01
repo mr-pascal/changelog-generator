@@ -166,6 +166,10 @@ mod tests {
     }
 }
 
+fn create_version_line(version: String, date: String) -> String {
+    format!("## [{}] - {}", version, date)
+}
+
 fn main() {
     println!("Starting...");
 
@@ -229,11 +233,11 @@ fn main() {
     let combined_lines = lines.join("\n");
     println!("");
     println!("");
-    // println!("");
-    // println!("{:?}", combined_lines);
 
-    // TODO-NEXT
-    // - read actual changelog file
+    // TODO: Those have to be dynamically!
+    let new_version = String::from("1.2.3");
+    let new_date = String::from("2022-11-01");
+    let version_line = create_version_line(new_version, new_date);
 
     println!("Try to write into file...");
     let old_changelog_content = read_file_to_string(changelog_file_path.clone()).unwrap(); // TODO2: Error handling
@@ -248,51 +252,18 @@ fn main() {
 
     // splitted.insert(1, "\n"); // add a bit of space between entries
     splitted.insert(1, &combined_lines); // Add the actual new lines
+    splitted.insert(1, &version_line); // Add version and date
 
     // Combine all the text again and write it
     let final_text = splitted.join("\n");
     write_string_to_file(changelog_file_path2, final_text).unwrap();
 
-    // let f = fs::File::create(changelog_file_path2).expect("Couldn't open file!"); // TODO2: file handler from "read_file_to_string" shoudl be re-used
-
-    // let buffered_lines = combined_lines.as_bytes();
-    // let u64_position = u64::try_from(found_last_version_at).expect("conversion failed...");
-    // f.write_all_at(buffered_lines, u64_position)
-    // .expect("write_all_at failed");
-
     println!("did it worked?");
-    // - find position to insert
-    // - insert new point at position
 
     // TODO-Next
     // - Write version
 
     // let _ = write_string_to_file("my_new_changelog.md".to_owned(), combined_lines);
-
-    // TODO
-    // -- Order by ticket_reference
-    // -- Order by section
-    //
-    // -- Convert to ChangelogEntry
-    // -- write changelogentry into CHANGELOG.md
-
-    // Parse the changelogs (create the entries)
-
-    // ----l-------
-    // println!("\n");
-    // println!("\n");
-    // println!("====== Changelog Debug ======");
-    // let changelog = read_file(changelog_file.clone()).expect("seems like this program crashed..:/");
-    // println!("{:?}", changelog);
-
-    // let stringified = convert_changelog_to_string(changelog);
-    // println!("\n");
-    // println!("\n");
-    // println!("====== Stringified Debug ======");
-    // println!("{}", stringified);
-    // ----l-------
-
-    // 4. Add the changelogs
 
     // 5. Cleanup changelog files
 
