@@ -122,6 +122,15 @@ mod tests {
     }
 
     #[test]
+    fn test_create_version_line() -> Result<(), String> {
+        assert_eq!(
+            create_version_line("1.2.3".to_owned(), "2022-11-01".to_owned()),
+            "## [1.2.3] - 2022-11-01"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn test_group_by_section() -> Result<(), String> {
         let a = FileEntry {
             file_name: "a".to_owned(),
