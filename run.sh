@@ -1,0 +1,1 @@
+cargo run -- -c examples/demo1/CHANGELOG.md -f examples/demo1/changelogs
