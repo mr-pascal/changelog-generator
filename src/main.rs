@@ -12,11 +12,6 @@ fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
 }
 
 fn write_string_to_file(path: String, content: String) -> Result<(), Box<dyn Error>> {
-    // TODO: Later "write_all_at"
-
-    // let mut file = File::create(path)?;
-    // file.write_all(b"Hello, world!")?;
-
     fs::write(path, content)?;
     Ok(())
 }
