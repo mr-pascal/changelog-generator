@@ -13,6 +13,7 @@ result in a now created merge conflict on the still open pull request.
 Another case when a conflict could arise is when a release happens and the changelog 
 is adjusted accordingly.
 
+:bulb: :wrench:
 This tool tries to work around this issue. Using this tool developers can create new files 
 in a dedicated folder containing their changelog changes.
 
