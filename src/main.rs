@@ -1,24 +1,10 @@
 mod entities;
 mod parser;
-use entities::Changelog;
-use parser::{convert_changelog_to_string, convert_string_to_changelog};
+use clap::Parser;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
-use std::os::unix::prelude::FileExt;
 use walkdir::WalkDir;
-
-use crate::entities::ChangelogEntry;
-
-fn read_file(path: String) -> Result<Changelog, Box<dyn Error>> {
-    // let error_msg = format!("Couldn't open file {}!", path);
-    // TODO: proper error handling
-    let changelog_string: String = fs::read_to_string(&path)?.parse()?;
-
-    let ch = convert_string_to_changelog(changelog_string);
-
-    Ok(ch)
-}
 
 fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
     let out: String = fs::read_to_string(&path)?.parse()?;
@@ -35,16 +21,6 @@ fn write_string_to_file(path: String, content: String) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-fn find_changelogs_folder() -> String {
-    // TODO: find it by real!
-    String::from("changelogs")
-}
-
-fn find_changelog_file() -> String {
-    // TODO: find it by real!
-    String::from("CHANGELOG.md")
-}
-
 #[derive(Clone, Debug)]
 struct FileEntry {
     file_name: String,
@@ -55,10 +31,10 @@ struct FileEntry {
 }
 
 fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
-    // TODO: Format -> <ticket_number>_<action>_<random>.md"
+    // Format -> <ticket_number>_<action>_<random>.md"
 
     let mut file_entries: Vec<FileEntry> = vec![];
-    println!("find_changelogs: searching in '{}'", folder_path);
+    // println!("find_changelogs: searching in '{}'", folder_path);
 
     WalkDir::new(folder_path)
         .into_iter()
@@ -179,20 +155,46 @@ fn create_version_line(version: String, date: String) -> String {
     format!("## [{}] - {}", version, date)
 }
 
+// Comand line arguments
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Path to the destination changelog file
+    #[clap(short, long, value_parser, default_value_t = String::from("CHANGELOG.md"))]
+    changelog_path: String,
+
+    /// Path to the folder containing the change logs
+    #[clap(short, long, value_parser, default_value_t = String::from("changelogs"))]
+    folder_path: String,
+
+    /// New version to set
+    #[clap(short, long, value_parser)]
+    new_version: String,
+
+    /// Delete change log files after merging?
+    #[clap(short, long, value_parser, default_value_t = false)]
+    delete_changelogs: bool,
+    // TODO3: add optional date
+}
+
 fn main() {
-    println!("Starting...");
+    // Parse aaaaaaaaa
+    let args = Args::parse();
+    println!("Arguments:");
+    println!("{:?}", args);
 
-    // TODO: paths should be passed via config later
+    // Extract arguments
+    let changelog_file_path = args.changelog_path;
+    let changelogs_folder_path = args.folder_path;
+    let new_version = args.new_version;
+    let delete_changelogs = args.delete_changelogs;
 
-    // 1. Find the changelog file
-    // The initial changelog
-    let changelog_file_path = String::from("examples/demo1/CHANGELOG.md");
+    if delete_changelogs {
+        println!("The '-d' and '--delete_changelogs' arguments are not yet implemented!");
+        std::process::exit(1);
+    }
 
-    // Use this file to write the new changelog to TODO -> Will later be the same as the old one
-    let changelog_file_path2 = String::from("examples/demo1/CHANGELOG2.md");
-
-    // 2. Find the changelogs to add
-    let changelogs_folder_path = String::from("examples/demo1/changelogs");
+    // Find all the new entries
     let file_entries = find_changelogs(changelogs_folder_path);
 
     // 3. Read the files
@@ -214,10 +216,6 @@ fn main() {
                 ticket_reference,
             };
         })
-        // .inspect(|x| {
-        //     println!("");
-        //     println!("{:?}", x);
-        // })
         .collect();
 
     let grouped = group_by_section(result);
@@ -235,7 +233,7 @@ fn main() {
                 })
                 .collect::<Vec<String>>();
 
-            return format!("### {}\n- {}", section_name, lines.join("\n- "));
+            return format!("### {}\n- {}\n", section_name, lines.join("\n- "));
         })
         .collect();
 
@@ -244,15 +242,14 @@ fn main() {
     println!("");
 
     // TODO: Those have to be dynamically!
-    let new_version = String::from("1.2.3");
     let new_date = String::from("2022-11-01");
     let version_line = create_version_line(new_version, new_date);
 
-    println!("Try to write into file...");
+    // println!("Try to write into file...");
     let old_changelog_content = read_file_to_string(changelog_file_path.clone()).unwrap(); // TODO2: Error handling
     let split_pattern = "\n## ";
     let mut splitted: Vec<&str> = old_changelog_content.splitn(2, split_pattern).collect();
-    println!("{:?}", splitted);
+    // println!("{:?}", splitted);
 
     // Re-Add the pattern that was "splitted" away
     let second_part = splitted.get(1).unwrap();
@@ -265,16 +262,7 @@ fn main() {
 
     // Combine all the text again and write it
     let final_text = splitted.join("\n");
-    write_string_to_file(changelog_file_path2, final_text).unwrap();
-
-    println!("did it worked?");
-
-    // TODO-Next
-    // - Write version
-
-    // let _ = write_string_to_file("my_new_changelog.md".to_owned(), combined_lines);
+    write_string_to_file(changelog_file_path, final_text).expect("Should write to the file...");
 
     // 5. Cleanup changelog files
-
-    // 6. Set version + Date
 }
