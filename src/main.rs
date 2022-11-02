@@ -1,29 +1,10 @@
-mod entities;
+mod filesystem;
 mod parser;
 use clap::Parser;
+use filesystem::{read_file_to_string, write_string_to_file, FileEntry};
+use parser::{create_version_line, parse_file_name};
 use std::collections::HashMap;
-use std::error::Error;
-use std::fs;
 use walkdir::WalkDir;
-
-fn read_file_to_string(path: String) -> Result<String, Box<dyn Error>> {
-    let out: String = fs::read_to_string(&path)?.parse()?;
-    Ok(out)
-}
-
-fn write_string_to_file(path: String, content: String) -> Result<(), Box<dyn Error>> {
-    fs::write(path, content)?;
-    Ok(())
-}
-
-#[derive(Clone, Debug)]
-struct FileEntry {
-    file_name: String,
-    path: String,
-    content: String,
-    ticket_reference: String,
-    section: String,
-}
 
 fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
     // Format -> <ticket_number>_<action>_<random>.md"
@@ -53,14 +34,6 @@ fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
     return file_entries;
 }
 
-fn parse_file_name(name: String) -> (String, String) {
-    // convention: "TICKTET_NUMBER_SECTION_RND"
-    let splitted: Vec<&str> = name.split("_").collect();
-    let ticket_reference: &str = splitted.get(0).unwrap(); // TODO2: error handling
-    let section: &str = splitted.get(1).unwrap(); // TODO2: error handling
-    (String::from(ticket_reference), String::from(section))
-}
-
 fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntry>> {
     let mut hm: HashMap<String, Vec<FileEntry>> = HashMap::new();
     entries.into_iter().for_each(|entry| {
@@ -79,27 +52,6 @@ fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntry>> 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_parse_file_name() -> Result<(), String> {
-        let tr = String::from("AI-123");
-        let section = String::from("changed");
-        let name = format!("{}_{}_123.md", tr, section);
-
-        // TODO: template string instead of copy&paste
-        assert_eq!(parse_file_name(name), (tr, section));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_create_version_line() -> Result<(), String> {
-        assert_eq!(
-            create_version_line("1.2.3".to_owned(), "2022-11-01".to_owned()),
-            "## [1.2.3] - 2022-11-01"
-        );
-        Ok(())
-    }
 
     #[test]
     fn test_group_by_section() -> Result<(), String> {
@@ -146,10 +98,6 @@ mod tests {
     }
 }
 
-fn create_version_line(version: String, date: String) -> String {
-    format!("## [{}] - {}", version, date)
-}
-
 // Comand line arguments
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -193,8 +141,6 @@ fn main() {
     let file_entries = find_changelogs(changelogs_folder_path);
 
     // 3. Read the files
-    // TODO2: for "practice sake" use tokio spawn to read the files concurrently?
-    //        Could also add some benchmarking if it improves performance
     let result: Vec<FileEntry> = file_entries
         .into_iter()
         .map(|entry| {
