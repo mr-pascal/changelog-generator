@@ -1,9 +1,10 @@
+mod file_entry;
 mod filesystem;
 mod parser;
 use clap::Parser;
-use filesystem::{read_file_to_string, write_string_to_file, FileEntry};
+use file_entry::{group_by_section, FileEntry};
+use filesystem::{read_file_to_string, write_string_to_file};
 use parser::{create_version_line, parse_file_name};
-use std::collections::HashMap;
 use walkdir::WalkDir;
 
 fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
@@ -32,70 +33,6 @@ fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
             });
         });
     return file_entries;
-}
-
-fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntry>> {
-    let mut hm: HashMap<String, Vec<FileEntry>> = HashMap::new();
-    entries.into_iter().for_each(|entry| {
-        let section: String = entry.section.clone();
-        if !hm.contains_key(&section) {
-            // nothing in there yet
-            hm.insert(section.clone(), vec![]);
-        }
-        // get mut so we don't have to re-insert it
-        let v = hm.get_mut(&section).unwrap(); // TODO2: error handling
-        v.push(entry);
-    });
-    return hm;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_group_by_section() -> Result<(), String> {
-        let a = FileEntry {
-            file_name: "a".to_owned(),
-            path: "a".to_owned(),
-            content: "a".to_owned(),
-            section: "a".to_owned(),
-            ticket_reference: "a".to_owned(),
-        };
-        let b = FileEntry {
-            file_name: "b".to_owned(),
-            path: "b".to_owned(),
-            content: "b".to_owned(),
-            section: "a".to_owned(),
-            ticket_reference: "b".to_owned(),
-        };
-        let c = FileEntry {
-            file_name: "c".to_owned(),
-            path: "c".to_owned(),
-            content: "c".to_owned(),
-            section: "c".to_owned(),
-            ticket_reference: "c".to_owned(),
-        };
-
-        let entries = vec![a.clone(), b.clone(), c.clone()];
-        let expected: HashMap<String, Vec<FileEntry>> = HashMap::from([
-            (a.section.clone(), vec![a, b]),
-            (c.section.clone(), vec![c]),
-        ]);
-        let grouped = group_by_section(entries);
-        grouped.keys().for_each(|g| {
-            assert_eq!(expected.contains_key(g), true);
-        });
-
-        for (k, v) in grouped {
-            // Only checking "roughly"
-            // no in-depth checks for actual content
-            assert_eq!(expected.contains_key(&k), true);
-            assert_eq!(expected.get(&k).unwrap().len(), v.len());
-        }
-
-        Ok(())
-    }
 }
 
 // Comand line arguments
