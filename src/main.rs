@@ -1,39 +1,12 @@
 mod file_entry;
 mod filesystem;
 mod parser;
+mod walker;
 use clap::Parser;
 use file_entry::{group_by_section, FileEntry};
 use filesystem::{read_file_to_string, write_string_to_file};
 use parser::{create_version_line, parse_file_name};
-use walkdir::WalkDir;
-
-fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
-    // Format -> <ticket_number>_<action>_<random>.md"
-
-    let mut file_entries: Vec<FileEntry> = vec![];
-    // println!("find_changelogs: searching in '{}'", folder_path);
-
-    WalkDir::new(folder_path)
-        .into_iter()
-        // .filter_entry(|e| !is_hidden(e))
-        .filter_map(|v| v.ok())
-        .for_each(|x| {
-            if x.depth() != 1 {
-                // Ignore everything which isn't a direct
-                // descendant of 'folder_path'
-                return;
-            }
-
-            file_entries.push(FileEntry {
-                file_name: x.file_name().to_str().unwrap().to_owned(), // TODO2: Maybe some error handling later
-                path: x.path().to_str().unwrap().to_owned(), // TODO2: maybe some error handling later
-                content: String::from(""),
-                ticket_reference: String::from(""),
-                section: String::from(""),
-            });
-        });
-    return file_entries;
-}
+use walker::find_changelogs;
 
 // Comand line arguments
 #[derive(Parser, Debug)]
