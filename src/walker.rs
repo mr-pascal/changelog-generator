@@ -1,11 +1,13 @@
+use crate::filesystem::read_file_to_string;
+
+use super::parser::parse_file_name;
 use super::FileEntry;
 use walkdir::WalkDir;
 
-pub fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
+pub fn find_and_convert_changelogs(folder_path: String) -> Vec<FileEntry> {
     // Format -> <ticket_number>_<action>_<random>.md"
 
     let mut file_entries: Vec<FileEntry> = vec![];
-    // println!("find_changelogs: searching in '{}'", folder_path);
 
     WalkDir::new(folder_path)
         .into_iter()
@@ -18,12 +20,26 @@ pub fn find_changelogs(folder_path: String) -> Vec<FileEntry> {
                 return;
             }
 
+            // TODO: Put conversion logic to dedicated method!
+
+            // TODO2: Error Handling
+            let path = x.path().to_str().unwrap().to_owned();
+            // TODO2: Error Handling
+            let file_name = x.file_name().to_str().unwrap().to_owned();
+
+            // Read file
+            //TODO2: Error handling
+            let content = read_file_to_string(path.clone()).unwrap();
+            //TODO2: Error handling
+            let (ticket_reference, section) = parse_file_name(file_name.clone());
+
+            // Create full entry
             file_entries.push(FileEntry {
-                file_name: x.file_name().to_str().unwrap().to_owned(), // TODO2: Maybe some error handling later
-                path: x.path().to_str().unwrap().to_owned(), // TODO2: maybe some error handling later
-                content: String::from(""),
-                ticket_reference: String::from(""),
-                section: String::from(""),
+                file_name,
+                path,
+                content,
+                ticket_reference,
+                section,
             });
         });
     return file_entries;

@@ -1,3 +1,6 @@
+use super::file_entry::FileEntry;
+use std::collections::HashMap;
+
 pub fn parse_file_name(name: String) -> (String, String) {
     // convention: "TICKTET_NUMBER_SECTION_RND"
     let splitted: Vec<&str> = name.split("_").collect();
@@ -9,9 +12,36 @@ pub fn parse_file_name(name: String) -> (String, String) {
 pub fn create_version_line(version: String, date: String) -> String {
     format!("## [{}] - {}", version, date)
 }
+
+pub fn generate_lines(hm: HashMap<String, Vec<FileEntry>>) -> Vec<String> {
+    let lines: Vec<String> = hm
+        .into_iter()
+        .map(|(k, v)| {
+            let section_name = k.clone();
+
+            let lines = v
+                .into_iter()
+                .map(|ve| {
+                    // Create text rows from FileEntry
+                    return format!("[{}] {}", ve.ticket_reference, ve.content);
+                })
+                .collect::<Vec<String>>();
+
+            return format!("### {}\n- {}\n", section_name, lines.join("\n- "));
+        })
+        .collect();
+    return lines;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_generate_lines() -> Result<(), String> {
+        // TODO: Implement test!
+        Ok(())
+    }
 
     #[test]
     fn test_parse_file_name() -> Result<(), String> {
