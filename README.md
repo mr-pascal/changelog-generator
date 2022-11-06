@@ -90,8 +90,10 @@ docker run \
   -n 2.0.0
 ```
 
-#### Default folder structure
+## Examples
 
+
+Default folder structure:
 ```
 /
 |- changelogs/
@@ -101,7 +103,7 @@ docker run \
 |- ... // some other files, e.g. /src  
 ```
 
-A few examples how the changelog files could look like
+A few examples how the changelog files could look like:
 ```
 AI-104_Changed_he.md
 AI-104_Changed_he1.md
