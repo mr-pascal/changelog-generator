@@ -60,7 +60,7 @@ cargo build --release
 ### Docker
 
 ```sh
-docker build -t clg .
+docker build -t abszissex/changelog-generator:0.1.0 .
 ```
 
 ## Run the application
@@ -77,13 +77,13 @@ cargo run \
 
 ```
 
-### From Docker
+### From Docker.io Registry
 
 ```sh
 docker run \
   --rm \
   -v ./examples:/examples \
-  --name clg localhost/clg \
+  --name changelog-generator abszissex/changelog-generator \
   -c="/examples/demo1/CHANGELOG.md" \
   -f="/examples/demo1/changelogs" \
   --date 2022-06-11 \
