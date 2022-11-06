@@ -26,6 +26,10 @@ struct Args {
     #[clap(short, long, value_parser)]
     new_version: String,
 
+    /// The date string to set for the new version
+    #[clap(long, value_parser)]
+    date: String,
+
     /// Delete change log files after merging?
     #[clap(short, long, value_parser, default_value_t = false)]
     delete_changelogs: bool,
@@ -42,6 +46,7 @@ fn main() {
     let changelog_file_path = args.changelog_path;
     let changelogs_folder_path = args.folder_path;
     let new_version = args.new_version;
+    let date = args.date;
     let delete_changelogs = args.delete_changelogs;
 
     if delete_changelogs {
@@ -59,10 +64,7 @@ fn main() {
     let lines = generate_lines(grouped);
 
     let combined_lines = combine_lines(lines);
-
-    // TODO: Date needs to be set dynamically!
-    let new_date = String::from("2022-11-01");
-    let version_line = create_version_line(new_version, new_date);
+    let version_line = create_version_line(new_version, date);
 
     let old_changelog_content = read_file_to_string(changelog_file_path.clone()).unwrap(); // TODO2: Error handling
     let split_pattern = "\n## ";
