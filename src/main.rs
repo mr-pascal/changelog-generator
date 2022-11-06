@@ -10,6 +10,8 @@ use parser::{create_version_line, generate_lines};
 use utils::combine_lines;
 use walker::find_and_convert_changelogs;
 
+use crate::filesystem::remove_files;
+
 // Comand line arguments
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -49,16 +51,11 @@ fn main() {
     let date = args.date;
     let delete_changelogs = args.delete_changelogs;
 
-    if delete_changelogs {
-        println!("The '-d' and '--delete_changelogs' arguments are not yet implemented!");
-        std::process::exit(1);
-    }
-
     // Find all the new entries
     let result = find_and_convert_changelogs(changelogs_folder_path);
 
     // Group the entries by their section
-    let grouped = group_by_section(result);
+    let grouped = group_by_section(result.clone());
 
     // Convert the grouped FileEntry's to lines
     let lines = generate_lines(grouped);
@@ -85,4 +82,11 @@ fn main() {
 
     // 5. Cleanup changelog files
     // TODO: optionally delete the changelog files (based on flag)
+
+    if delete_changelogs {
+        let change_logs_file_paths: Vec<String> =
+            result.into_iter().map(|fe| fe.path.clone()).collect();
+        remove_files(change_logs_file_paths).expect("Couldn't delete all files!");
+        // TOOD2: Error handling
+    }
 }
