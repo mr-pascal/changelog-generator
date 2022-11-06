@@ -26,6 +26,28 @@ changelog maintenance experience.
 
 
 ```sh
+Usage: changelog-generator [OPTIONS] --new-version <NEW_VERSION> --date <DATE>
+
+Options:
+  -c, --changelog-path <CHANGELOG_PATH>
+          Path to the destination changelog file [default: CHANGELOG.md]
+  -f, --folder-path <FOLDER_PATH>
+          Path to the folder containing the change logs [default: changelogs]
+  -n, --new-version <NEW_VERSION>
+          New version to set
+      --date <DATE>
+          The date string to set for the new version
+  -d, --delete-changelogs
+          Delete change log files after merging?
+  -h, --help
+          Print help information
+  -V, --version
+          Print version information
+```
+
+
+
+```sh
 
 ### Run from source  
 cargo run -- -c examples/demo1/CHANGELOG.md -f examples/demo1/changelogs -n 2.0.0
