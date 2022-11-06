@@ -50,7 +50,11 @@ Options:
 ### From source
 
 ```sh
+# Development build
 cargo build
+
+# Release Build
+cargo build --release
 ```
 
 ### Docker
