@@ -72,3 +72,25 @@ AI-104_Changed_he1.md
 PL-112_Added_123.md
 No-Issue_Removed_pz1.md
 ```
+
+
+### Building the application
+
+
+#### Docker
+```sh
+
+## Build
+docker build -t clg .
+
+## Run
+docker run \
+  --rm \
+  -v ./examples:/examples \
+  --name clg localhost/clg \
+  -c="/examples/demo1/CHANGELOG.md" \
+  -f="/examples/demo1/changelogs" \
+  --date 2022-06-11 \
+  -n 2.0.0
+  
+  ```
