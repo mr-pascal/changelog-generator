@@ -41,8 +41,8 @@ struct Args {
 fn main() {
     // Parse aaaaaaaaa
     let args = Args::parse();
-    println!("Arguments:");
-    println!("{:?}", args);
+    // println!("Arguments:");
+    // println!("{:?}", args);
 
     // Extract arguments
     let changelog_file_path = args.changelog_path;
@@ -80,13 +80,13 @@ fn main() {
     // TODO2: Proper error handling!
     write_string_to_file(changelog_file_path, final_text).unwrap();
 
-    // 5. Cleanup changelog files
-    // TODO: optionally delete the changelog files (based on flag)
-
+    // Cleanup changelog files
     if delete_changelogs {
         let change_logs_file_paths: Vec<String> =
             result.into_iter().map(|fe| fe.path.clone()).collect();
         remove_files(change_logs_file_paths).expect("Couldn't delete all files!");
         // TOOD2: Error handling
+
+        // TODO3: Output the files that were deleted
     }
 }
