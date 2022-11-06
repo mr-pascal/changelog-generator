@@ -30,17 +30,20 @@ pub fn find_and_convert_changelogs(folder_path: String) -> Vec<FileEntry> {
             // Read file
             //TODO2: Error handling
             let content = read_file_to_string(path.clone()).unwrap();
-            //TODO2: Error handling
-            let (ticket_reference, section) = parse_file_name(file_name.clone());
 
-            // Create full entry
-            file_entries.push(FileEntry {
-                file_name,
-                path,
-                content,
-                ticket_reference,
-                section,
-            });
+            match parse_file_name(file_name.clone()) {
+                Ok((ticket_reference, section)) => {
+                    // Create full entry
+                    file_entries.push(FileEntry {
+                        file_name,
+                        path,
+                        content,
+                        ticket_reference,
+                        section,
+                    });
+                }
+                Err(e) => println!("{}", e),
+            }
         });
     return file_entries;
 }
