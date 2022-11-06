@@ -24,7 +24,6 @@ changelog maintenance experience.
 
 ### How to Use
 
-
 ```sh
 Usage: changelog-generator [OPTIONS] --new-version <NEW_VERSION> --date <DATE>
 
@@ -45,13 +44,46 @@ Options:
           Print version information
 ```
 
+## Building the application
 
+
+### From source
 
 ```sh
+cargo build
+```
 
-### Run from source  
-cargo run -- -c examples/demo1/CHANGELOG.md -f examples/demo1/changelogs -n 2.0.0
+### Docker
 
+```sh
+docker build -t clg .
+```
+
+## Run the application
+
+
+### From source
+
+```sh
+cargo run \
+  -c="/examples/demo1/CHANGELOG.md" \
+  -f="/examples/demo1/changelogs" \
+  --date 2022-06-11 \
+  -n 2.0.0
+
+```
+
+### From Docker
+
+```sh
+docker run \
+  --rm \
+  -v ./examples:/examples \
+  --name clg localhost/clg \
+  -c="/examples/demo1/CHANGELOG.md" \
+  -f="/examples/demo1/changelogs" \
+  --date 2022-06-11 \
+  -n 2.0.0
 ```
 
 #### Default folder structure
@@ -74,23 +106,3 @@ No-Issue_Removed_pz1.md
 ```
 
 
-### Building the application
-
-
-#### Docker
-```sh
-
-## Build
-docker build -t clg .
-
-## Run
-docker run \
-  --rm \
-  -v ./examples:/examples \
-  --name clg localhost/clg \
-  -c="/examples/demo1/CHANGELOG.md" \
-  -f="/examples/demo1/changelogs" \
-  --date 2022-06-11 \
-  -n 2.0.0
-  
-  ```
