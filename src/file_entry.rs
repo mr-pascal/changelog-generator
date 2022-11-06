@@ -18,8 +18,12 @@ pub fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntr
             hm.insert(section.clone(), vec![]);
         }
         // get mut so we don't have to re-insert it
-        let v = hm.get_mut(&section).unwrap(); // TODO2: error handling
-        v.push(entry);
+        let v = hm.get_mut(&section);
+        match v {
+            Some(v) => v.push(entry),
+            // Don't do any special handling here, just ignore and print
+            None => eprintln!("WARN: Haven't found section '{}'", &section),
+        }
     });
     return hm;
 }
