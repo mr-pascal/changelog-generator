@@ -92,23 +92,4 @@ docker run \
 
 ## Examples
 
-
-Default folder structure:
-```
-/
-|- changelogs/
-  |- <Ticket_Number>_<Action>_<Random>.md
-  |- ... // more markdown files
-|- CHANGELOG.md
-|- ... // some other files, e.g. /src  
-```
-
-A few examples how the changelog files could look like:
-```
-AI-104_Changed_he.md
-AI-104_Changed_he1.md
-PL-112_Added_123.md
-No-Issue_Removed_pz1.md
-```
-
-
+You can find working examples in the `examples/` folder.
