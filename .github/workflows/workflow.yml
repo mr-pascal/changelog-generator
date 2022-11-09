@@ -40,11 +40,11 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      # Clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings  
+      # Clippy (Will be enabled later)
+      # - uses: actions-rs/cargo@v1
+        # with:
+          # command: clippy
+          # args: -- -D warnings  
   
   
 # Codecov will be added soon
