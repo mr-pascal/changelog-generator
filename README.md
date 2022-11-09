@@ -2,6 +2,9 @@
 
 This is a small tool to provide develoeprs a conflict free chagenlog experience.
 
+> :warning: Disclaimer: This tool is still highly under development and CLI options, as well as functionality is prone to change in the future. If you have any questions or issues, please generate an issue for it.
+
+
 
 ### The issue & how it's solved
 Imagine multiple developers working on the same repository/application. All of them raise a new 
