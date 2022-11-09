@@ -4,7 +4,7 @@ name: CI
 
 jobs:
   build_release:
-    name: Rust project
+    name: Build Application
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,14 +22,32 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+
+      # Build Release
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --all-features
+
+      # Test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      # Formatting
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      # Clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings  
   
   
-  
-  
+# Codecov will be added soon
 # steps:
 # - uses: actions/checkout@master
 # - uses: codecov/codecov-action@v3
