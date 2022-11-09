@@ -1,0 +1,30 @@
+on: [push]
+
+name: CI
+
+jobs:
+  build_release:
+    name: Rust project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+  
+  
+  
+  
+# steps:
+# - uses: actions/checkout@master
+# - uses: codecov/codecov-action@v3
+#   with:
+#     directory: coverage
+#     flags: unittests # optional
+#     name: codecov-umbrella # optional
+#     fail_ci_if_error: true # optional (default = false)
+#     verbose: true # optional (default = false)
