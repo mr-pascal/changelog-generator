@@ -84,6 +84,7 @@ jobs:
           command: test
 
       # Create coverage report
+      - run: rustup component add llvm-tools-preview # TODO: Cache it
       - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
 
       # Upload coverage reports to codecov
