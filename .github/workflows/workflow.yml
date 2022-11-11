@@ -1,14 +1,14 @@
 on: [push]
-
 name: CI
-
 jobs:
   build_release:
     name: Build Application
     runs-on: ubuntu-latest
     steps:
+      # Checkout
       - uses: actions/checkout@v3
-      
+
+      # Caching
       - uses: actions/cache@v3
         with:
           path: |
@@ -46,14 +46,51 @@ jobs:
           # command: clippy
           # args: -- -D warnings  
   
-  
-# Codecov will be added soon
-# steps:
-# - uses: actions/checkout@master
-# - uses: codecov/codecov-action@v3
-#   with:
-#     directory: coverage
-#     flags: unittests # optional
-#     name: codecov-umbrella # optional
-#     fail_ci_if_error: true # optional (default = false)
-#     verbose: true # optional (default = false)
+  test_coverage:
+    name: Test + Coverage
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@master
+      
+      # Caching
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
+      
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # Install "grcov"
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: grcov
+
+      # Create coverage instrumented build
+      - run: RUSTFLAGS="-Cinstrument-coverage" cargo build
+
+      # Test
+      - run: LLVM_PROFILE_FILE="coverage-%p-%m.profraw" cargo test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      # Create coverage report
+      - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
+
+      # Upload coverage reports to codecov
+      - uses: codecov/codecov-action@v3
+        with:
+          directory: coverage
+          flags: unittests # optional
+          name: codecov-umbrella # optional
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
