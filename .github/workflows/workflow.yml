@@ -49,6 +49,9 @@ jobs:
   test_coverage:
     name: Test + Coverage
     runs-on: ubuntu-latest
+    env:
+      RUST_FLAGS: "-Cinstrument-coverage"
+      LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
     steps:
       # Checkout
       - uses: actions/checkout@master
@@ -62,30 +65,39 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
+          key: ${{ runner.os }}-cargo-2-${{ hashFiles('**/Cargo.lock') }}
       
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
 
+      - run: rustup component add llvm-tools-preview # TODO: Cache it?
+
       # Install "grcov"
+      # Try to install via "dev-dependencies" in Cargo.toml file
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: install
+      #     args: grcov
+
+      # Build Application
       - uses: actions-rs/cargo@v1
         with:
-          command: install
-          args: grcov
-
+          command: build
+          args: --all-features
       # Create coverage instrumented build
-      - run: RUSTFLAGS="-Cinstrument-coverage" cargo build
+      # - run: RUSTFLAGS="-Cinstrument-coverage" cargo build
 
       # Test
-      - run: LLVM_PROFILE_FILE="coverage-%p-%m.profraw" cargo test
+      # - run: LLVM_PROFILE_FILE="coverage-%p-%m.profraw" cargo test
       - uses: actions-rs/cargo@v1
         with:
           command: test
 
       # Create coverage report
-      - run: rustup component add llvm-tools-preview # TODO: Cache it
-      - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
+      # - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
+
+      - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
 
       # Upload coverage reports to codecov
       - uses: codecov/codecov-action@v3
