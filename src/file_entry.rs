@@ -25,7 +25,7 @@ pub fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntr
             None => eprintln!("WARN: Haven't found section '{}'", &section),
         }
     });
-    return hm;
+    hm
 }
 
 #[cfg(test)]

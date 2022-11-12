@@ -35,10 +35,9 @@ impl ParseFileNameError {
 }
 
 pub fn parse_file_name(name: String) -> Result<(String, String), ParseFileNameError> {
-    let splitted: Vec<&str> = name.split("_").collect();
+    let splitted: Vec<&str> = name.split('_').collect();
 
-    let ticket_reference: &str = splitted
-        .get(0)
+    let ticket_reference: &str = splitted.first()
         .ok_or_else(|| ParseFileNameError::new(name.clone()))?;
     // TODO2: Check if "ok_or" or "ok_or_else" is better for throwning new errors
 
@@ -57,20 +56,20 @@ pub fn generate_lines(hm: HashMap<String, Vec<FileEntry>>) -> Vec<String> {
     let lines: Vec<String> = hm
         .into_iter()
         .map(|(k, v)| {
-            let section_name = k.clone();
+            let section_name = k;
 
             let lines = v
                 .into_iter()
                 .map(|ve| {
                     // Create text rows from FileEntry
-                    return format!("[{}] {}", ve.ticket_reference, ve.content);
+                    format!("[{}] {}", ve.ticket_reference, ve.content)
                 })
                 .collect::<Vec<String>>();
 
-            return format!("### {}\n- {}\n", section_name, lines.join("\n- "));
+            format!("### {}\n- {}\n", section_name, lines.join("\n- "))
         })
         .collect();
-    return lines;
+    lines
 }
 
 #[cfg(test)]
