@@ -1,50 +1,51 @@
 on: [push]
 name: CI
 jobs:
-  # build_release:
-  #   name: Build Application
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Checkout
-  #     - uses: actions/checkout@v3
+  build_release:
+    name: Build Application
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@v3
 
-  #     # Caching
-  #     - uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/bin/
-  #           ~/.cargo/registry/index/
-  #           ~/.cargo/registry/cache/
-  #           ~/.cargo/git/db/
-  #           target/
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
-      
-  #     - uses: actions-rs/toolchain@v1
-  #       with:
-  #         toolchain: stable
+      # Caching
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
 
-  #     # Build Release
-  #     - uses: actions-rs/cargo@v1
-  #       with:
-  #         command: build
-  #         args: --release --all-features
+      # Toolchain
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
 
-  #     # Test
-  #     - uses: actions-rs/cargo@v1
-  #       with:
-  #         command: test
+      # Build Release
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
 
-  #     # Formatting
-  #     - uses: actions-rs/cargo@v1
-  #       with:
-  #         command: fmt
-  #         args: --all -- --check
+      # Test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
 
-  #     # Clippy (Will be enabled later)
-  #     # - uses: actions-rs/cargo@v1
-  #       # with:
-  #         # command: clippy
-  #         # args: -- -D warnings  
+      # Formatting
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      # Clippy (Will be enabled later)
+      # - uses: actions-rs/cargo@v1
+        # with:
+          # command: clippy
+          # args: -- -D warnings  
   
   test_coverage:
     name: Test + Coverage
@@ -66,15 +67,12 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-2-${{ hashFiles('**/Cargo.lock') }}
-      
+
+      # Toolchain
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          # profile: minimal
           components: llvm-tools-preview
-
-      # Installed via "action-rs/toolchain"
-      # - run: rustup component add llvm-tools-preview
 
       # Install "grcov"
       - uses: actions-rs/cargo@v1
@@ -82,19 +80,13 @@ jobs:
           command: install
           args: grcov
 
-      ## TODO: Cleanup stuff for local development
-      - run: rm -rf target coverage lcov.info *.profraw
-      - run: ls -la
       # Build Application
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: --all-features
-      # Create coverage instrumented build
-      # - run: RUSTFLAGS="-Cinstrument-coverage" cargo build
 
       # Test
-      # - run: LLVM_PROFILE_FILE="coverage-%p-%m.profraw" cargo test
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -102,18 +94,10 @@ jobs:
       # Create coverage report
       - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
 
-      
-      - run: ls -la
-      # - run: ls -la coverage
-      
-      # - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
-
       # Upload coverage reports to codecov
       - uses: codecov/codecov-action@v3
         with:
-          # directory: coverage
           files: ./lcov.info
-          flags: unittests # optional
-          name: codecov-umbrella # optional
-          fail_ci_if_error: true # optional (default = false)
-          verbose: true # optional (default = false)
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
