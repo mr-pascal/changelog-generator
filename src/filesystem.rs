@@ -14,7 +14,7 @@ pub fn write_string_to_file(path: String, content: String) -> Result<(), Box<dyn
 pub fn remove_files(paths: Vec<String>) -> Result<(), Box<dyn Error>> {
     paths.into_iter().for_each(|path| {
         // TODO2: don't break but delete all files possible
-        let err_msg: &str = &*format!("Couldn't delete file '{}'!", path);
+        let err_msg: &str = &format!("Couldn't delete file '{}'!", path);
         fs::remove_file(path).expect(err_msg); // TODO2: Error hadnling
     });
     Ok(())
