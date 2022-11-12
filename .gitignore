@@ -1,2 +1,7 @@
+# Build destination
 /target
+
+# Test Coverage
 /coverage
+lcov.info
+*.profraw

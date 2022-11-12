@@ -1,14 +1,14 @@
 on: [push]
-
 name: CI
-
 jobs:
   build_release:
-    name: Build Application
+    name: Build Application + Format
     runs-on: ubuntu-latest
     steps:
+      # Checkout
       - uses: actions/checkout@v3
-      
+
+      # Caching
       - uses: actions/cache@v3
         with:
           path: |
@@ -18,10 +18,17 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
-      
+
+      # Toolchain
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+
+      # Formatting (TODO: Might move formatting to dedicated Job)
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
 
       # Build Release
       - uses: actions-rs/cargo@v1
@@ -29,31 +36,63 @@ jobs:
           command: build
           args: --release --all-features
 
-      # Test
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-
-      # Formatting
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
       # Clippy (Will be enabled later)
       # - uses: actions-rs/cargo@v1
         # with:
           # command: clippy
           # args: -- -D warnings  
   
-  
-# Codecov will be added soon
-# steps:
-# - uses: actions/checkout@master
-# - uses: codecov/codecov-action@v3
-#   with:
-#     directory: coverage
-#     flags: unittests # optional
-#     name: codecov-umbrella # optional
-#     fail_ci_if_error: true # optional (default = false)
-#     verbose: true # optional (default = false)
+  test_coverage:
+    name: Test + Coverage
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Cinstrument-coverage"
+      LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
+    steps:
+      # Checkout
+      - uses: actions/checkout@master
+      
+      # Caching
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-2-${{ hashFiles('**/Cargo.lock') }}
+
+      # Toolchain
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: llvm-tools-preview
+
+      # Install "grcov"
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: grcov
+
+      # Build Application
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features
+
+      # Test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      # Create coverage report
+      - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
+
+      # Upload coverage reports to codecov
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
