@@ -2,7 +2,7 @@ on: [push]
 name: CI
 jobs:
   build_release:
-    name: Build Application
+    name: Build Application + Format
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -24,17 +24,17 @@ jobs:
         with:
           toolchain: stable
 
+      # Formatting (TODO: Might move formatting to dedicated Job)
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
       # Build Release
       - uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --all-features
-
-      # Formatting
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
 
       # Clippy (Will be enabled later)
       # - uses: actions-rs/cargo@v1
