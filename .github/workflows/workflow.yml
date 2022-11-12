@@ -50,7 +50,7 @@ jobs:
     name: Test + Coverage
     runs-on: ubuntu-latest
     env:
-      RUST_FLAGS: "-Cinstrument-coverage"
+      RUSTFLAGS: "-Cinstrument-coverage"
       LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
     steps:
       # Checkout
