@@ -1,50 +1,50 @@
 on: [push]
 name: CI
 jobs:
-  build_release:
-    name: Build Application
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout
-      - uses: actions/checkout@v3
+  # build_release:
+  #   name: Build Application
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # Checkout
+  #     - uses: actions/checkout@v3
 
-      # Caching
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
+  #     # Caching
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target/
+  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
       
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
 
-      # Build Release
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
+  #     # Build Release
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: build
+  #         args: --release --all-features
 
-      # Test
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
+  #     # Test
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: test
 
-      # Formatting
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+  #     # Formatting
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: fmt
+  #         args: --all -- --check
 
-      # Clippy (Will be enabled later)
-      # - uses: actions-rs/cargo@v1
-        # with:
-          # command: clippy
-          # args: -- -D warnings  
+  #     # Clippy (Will be enabled later)
+  #     # - uses: actions-rs/cargo@v1
+  #       # with:
+  #         # command: clippy
+  #         # args: -- -D warnings  
   
   test_coverage:
     name: Test + Coverage
@@ -70,16 +70,21 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          # profile: minimal
+          components: llvm-tools-preview
 
-      - run: rustup component add llvm-tools-preview # TODO: Cache it?
+      # Installed via "action-rs/toolchain"
+      # - run: rustup component add llvm-tools-preview
 
       # Install "grcov"
-      # Try to install via "dev-dependencies" in Cargo.toml file
-      # - uses: actions-rs/cargo@v1
-      #   with:
-      #     command: install
-      #     args: grcov
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: grcov
 
+      ## TODO: Cleanup stuff for local development
+      - run: rm -rf target coverage lcov.info *.profraw
+      - run: ls -la
       # Build Application
       - uses: actions-rs/cargo@v1
         with:
@@ -95,14 +100,19 @@ jobs:
           command: test
 
       # Create coverage report
-      # - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
+      - run: grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing -o ./lcov.info
 
-      - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
+      
+      - run: ls -la
+      # - run: ls -la coverage
+      
+      # - run: grcov . --binary-path ./target/debug/ -s . -t html --branch --ignore-not-existing -o ./coverage/      
 
       # Upload coverage reports to codecov
       - uses: codecov/codecov-action@v3
         with:
-          directory: coverage
+          # directory: coverage
+          files: ./lcov.info
           flags: unittests # optional
           name: codecov-umbrella # optional
           fail_ci_if_error: true # optional (default = false)
