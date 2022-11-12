@@ -17,18 +17,12 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
+          key: ${{ runner.os }}-cargo-1-${{ hashFiles('**/Cargo.lock') }}    
 
       # Toolchain
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-
-      # Formatting (TODO: Might move formatting to dedicated Job)
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
 
       # Build Release
       - uses: actions-rs/cargo@v1
@@ -36,11 +30,41 @@ jobs:
           command: build
           args: --release --all-features
 
-      # Clippy (Will be enabled later)
-      # - uses: actions-rs/cargo@v1
-        # with:
-          # command: clippy
-          # args: -- -D warnings  
+  
+  code_cleaniness:
+    name: Clean Code
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@v3
+
+      # Caching
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-3-${{ hashFiles('**/Cargo.lock') }}    
+
+      # Toolchain
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # Formatting
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check # "--check" -> Error on incorrect format
+
+      # Clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings # "-D warnings" -> Error on found warnings
   
   test_coverage:
     name: Test + Coverage

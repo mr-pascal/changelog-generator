@@ -37,7 +37,8 @@ impl ParseFileNameError {
 pub fn parse_file_name(name: String) -> Result<(String, String), ParseFileNameError> {
     let splitted: Vec<&str> = name.split('_').collect();
 
-    let ticket_reference: &str = splitted.first()
+    let ticket_reference: &str = splitted
+        .first()
         .ok_or_else(|| ParseFileNameError::new(name.clone()))?;
     // TODO2: Check if "ok_or" or "ok_or_else" is better for throwning new errors
 

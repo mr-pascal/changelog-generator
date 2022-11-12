@@ -82,8 +82,7 @@ fn main() {
 
     // Cleanup changelog files
     if delete_changelogs {
-        let change_logs_file_paths: Vec<String> =
-            result.into_iter().map(|fe| fe.path).collect();
+        let change_logs_file_paths: Vec<String> = result.into_iter().map(|fe| fe.path).collect();
         remove_files(change_logs_file_paths).expect("Couldn't delete all files!");
         // TOOD2: Error handling
 
