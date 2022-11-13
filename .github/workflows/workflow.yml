@@ -2,7 +2,7 @@ on: [push]
 name: CI
 jobs:
   build_release:
-    name: Build Application + Format
+    name: Build Release
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -31,7 +31,7 @@ jobs:
           args: --release --all-features
 
   
-  code_cleaniness:
+  clean_code:
     name: Clean Code
     runs-on: ubuntu-latest
     steps:
@@ -67,7 +67,7 @@ jobs:
           args: -- -D warnings # "-D warnings" -> Error on found warnings
   
   test_coverage:
-    name: Test + Coverage
+    name: Test Coverage
     runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Cinstrument-coverage"
@@ -96,6 +96,8 @@ jobs:
       # Install "grcov"
       # Use shell command to skip, if already installed
       # using "action-rs/cargo@v1" the pipeline will fail -> https://github.com/actions-rs/cargo/issues/219
+      - run: cargo install --list
+      - run: cargo install --list | grep "grcov v0.8.13"
       - run: if ! cargo install --list | grep -q "grcov v0.8.13"; then cargo install --version 0.8.13 grcov; fi
       # - uses: actions-rs/cargo@v1
       #   with:
