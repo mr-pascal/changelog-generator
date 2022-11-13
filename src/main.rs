@@ -1,5 +1,6 @@
 mod file_entry;
 mod filesystem;
+mod parse_file_name_error;
 mod parser;
 mod utils;
 mod walker;
