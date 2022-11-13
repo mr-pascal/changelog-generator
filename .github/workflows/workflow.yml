@@ -97,7 +97,7 @@ jobs:
       # Use shell command to skip, if already installed
       # using "action-rs/cargo@v1" the pipeline will fail -> https://github.com/actions-rs/cargo/issues/219
       - run: cargo install --list
-      - uses: actions-rs/cargo@v2
+      - uses: actions-rs/cargo@v1
         with:
           command: install
           args: --list
