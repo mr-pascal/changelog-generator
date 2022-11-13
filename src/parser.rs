@@ -54,6 +54,8 @@ pub fn create_version_line(version: String, date: String) -> String {
 }
 
 pub fn generate_lines(hm: HashMap<String, Vec<FileEntry>>) -> Vec<String> {
+    // TODO3: instead of using a Vec<FileEntry> use something more generic
+    // so this method isn't depending on FileEntry
     let lines: Vec<String> = hm
         .into_iter()
         .map(|(k, v)| {
@@ -79,7 +81,54 @@ mod tests {
 
     #[test]
     fn test_generate_lines() -> Result<(), String> {
-        // TODO: Implement test!
+        let mut input: HashMap<String, Vec<FileEntry>> = HashMap::new();
+        input.insert(
+            "Added".to_owned(),
+            vec![
+                FileEntry {
+                    file_name: "WAYNE".to_owned(),
+                    path: "WAYNE".to_owned(),
+                    content: "This is my\nmultiline content".to_owned(),
+                    ticket_reference: "MULTI-123".to_owned(),
+                    section: "WAYNE".to_owned(),
+                },
+                FileEntry {
+                    file_name: "WAYNE".to_owned(),
+                    path: "WAYNE".to_owned(),
+                    content: "My second content".to_owned(),
+                    ticket_reference: "PL-123".to_owned(),
+                    section: "WAYNE".to_owned(),
+                },
+            ],
+        );
+        input.insert(
+            "Changed".to_owned(),
+            vec![
+                FileEntry {
+                    file_name: "WAYNE".to_owned(),
+                    path: "WAYNE".to_owned(),
+                    content: "Changed some\nthings".to_owned(),
+                    ticket_reference: "CH-123".to_owned(),
+                    section: "WAYNE".to_owned(),
+                },
+                FileEntry {
+                    file_name: "WAYNE".to_owned(),
+                    path: "WAYNE".to_owned(),
+                    content: "My second change".to_owned(),
+                    ticket_reference: "CH-256".to_owned(),
+                    section: "WAYNE".to_owned(),
+                },
+            ],
+        );
+
+        let output = generate_lines(input);
+        let expected: Vec<String> = vec![
+            "### Added\n- [MULTI-123] This is my\nmultiline content\n- [PL-123] My second content\n"
+                .to_owned(),
+            "### Changed\n- [CH-123] Changed some\nthings\n- [CH-256] My second change\n"
+                .to_owned(),
+        ];
+        assert_eq!(output, expected);
         Ok(())
     }
 
