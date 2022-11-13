@@ -31,3 +31,19 @@ impl ParseFileNameError {
         ParseFileNameError { file_name }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ParseFileNameError_new() -> Result<(), String> {
+        let output = ParseFileNameError::new("my_file_name.txt".to_owned());
+        let expected = ParseFileNameError {
+            file_name: "my_file_name.txt".to_owned(),
+        };
+        assert_eq!(output.file_name, expected.file_name);
+
+        Ok(())
+    }
+}
