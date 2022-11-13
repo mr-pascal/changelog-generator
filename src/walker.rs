@@ -45,5 +45,5 @@ pub fn find_and_convert_changelogs(folder_path: String) -> Vec<FileEntry> {
                 Err(e) => println!("{}", e),
             }
         });
-    return file_entries;
+    file_entries
 }

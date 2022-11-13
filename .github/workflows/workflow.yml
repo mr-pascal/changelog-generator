@@ -2,7 +2,7 @@ on: [push]
 name: CI
 jobs:
   build_release:
-    name: Build Application + Format
+    name: Build Release
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -17,18 +17,12 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}    
+          key: ${{ runner.os }}-cargo-1-${{ hashFiles('**/Cargo.lock') }}    
 
       # Toolchain
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-
-      # Formatting (TODO: Might move formatting to dedicated Job)
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
 
       # Build Release
       - uses: actions-rs/cargo@v1
@@ -36,14 +30,44 @@ jobs:
           command: build
           args: --release --all-features
 
-      # Clippy (Will be enabled later)
-      # - uses: actions-rs/cargo@v1
-        # with:
-          # command: clippy
-          # args: -- -D warnings  
+  
+  clean_code:
+    name: Clean Code
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - uses: actions/checkout@v3
+
+      # Caching
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-3-${{ hashFiles('**/Cargo.lock') }}    
+
+      # Toolchain
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # Formatting
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check # "--check" -> Error on incorrect format
+
+      # Clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings # "-D warnings" -> Error on found warnings
   
   test_coverage:
-    name: Test + Coverage
+    name: Test Coverage
     runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Cinstrument-coverage"
@@ -70,10 +94,22 @@ jobs:
           components: llvm-tools-preview
 
       # Install "grcov"
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: grcov
+      # Use shell command to skip, if already installed
+      # using "action-rs/cargo@v1" the pipeline will fail -> https://github.com/actions-rs/cargo/issues/219
+      # - run: "! which grcov && cargo install grcov"
+      - run: "if ! which grcov; then cargo install grcov; fi"
+      # - run: which grcov
+      # - run: cargo install --list
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: install
+      #     args: --list
+      # - run: cargo install --list | grep "grcov v0.8.13"
+      # - run: if ! cargo install --list | grep -q "grcov v0.8.13"; then cargo install --version 0.8.13 grcov; fi
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: install
+      #     args: grcov
 
       # Build Application
       - uses: actions-rs/cargo@v1

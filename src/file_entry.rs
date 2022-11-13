@@ -25,7 +25,7 @@ pub fn group_by_section(entries: Vec<FileEntry>) -> HashMap<String, Vec<FileEntr
             None => eprintln!("WARN: Haven't found section '{}'", &section),
         }
     });
-    return hm;
+    hm
 }
 
 #[cfg(test)]
@@ -63,13 +63,13 @@ mod tests {
         ]);
         let grouped = group_by_section(entries);
         grouped.keys().for_each(|g| {
-            assert_eq!(expected.contains_key(g), true);
+            assert!(expected.contains_key(g));
         });
 
         for (k, v) in grouped {
             // Only checking "roughly"
             // no in-depth checks for actual content
-            assert_eq!(expected.contains_key(&k), true);
+            assert!(expected.contains_key(&k));
             assert_eq!(expected.get(&k).unwrap().len(), v.len());
         }
 
