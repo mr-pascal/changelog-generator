@@ -97,8 +97,12 @@ jobs:
       # Use shell command to skip, if already installed
       # using "action-rs/cargo@v1" the pipeline will fail -> https://github.com/actions-rs/cargo/issues/219
       - run: cargo install --list
+      - uses: actions-rs/cargo@v2
+        with:
+          command: install
+          args: --list
       # - run: cargo install --list | grep "grcov v0.8.13"
-      - run: if ! cargo install --list | grep -q "grcov v0.8.13"; then cargo install --version 0.8.13 grcov; fi
+      # - run: if ! cargo install --list | grep -q "grcov v0.8.13"; then cargo install --version 0.8.13 grcov; fi
       # - uses: actions-rs/cargo@v1
       #   with:
       #     command: install
