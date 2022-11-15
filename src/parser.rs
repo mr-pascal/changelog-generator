@@ -25,7 +25,7 @@ pub fn create_version_line(version: String, date: String) -> String {
 pub fn generate_lines(hm: HashMap<String, Vec<FileEntry>>) -> Vec<String> {
     // TODO3: instead of using a Vec<FileEntry> use something more generic
     // so this method isn't depending on FileEntry
-    let lines: Vec<String> = hm
+    let mut lines: Vec<String> = hm
         .into_iter()
         .map(|(k, v)| {
             let section_name = k;
@@ -40,7 +40,10 @@ pub fn generate_lines(hm: HashMap<String, Vec<FileEntry>>) -> Vec<String> {
 
             format!("### {}\n- {}\n", section_name, lines.join("\n- "))
         })
-        .collect();
+        .collect::<Vec<String>>();
+    // Sort the lines to prevent random ordering due to the HashMap
+    // Ordering by the whole line is fine, since it always start in the format "### ACTION..."
+    lines.sort();
     lines
 }
 
