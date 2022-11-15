@@ -46,4 +46,22 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_fmt() -> Result<(), String> {
+        let e = ParseFileNameError::new("my_file.txt".to_owned());
+        let output = format!("{}", e);
+        let expected = "\u{1b}[31mERROR\u{1b}[0m: 'my_file.txt' doesn't match the pattern! (<TICKET_NUMBER>_<SECTION>_...)".to_owned();
+        assert_eq!(output, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_from() -> Result<(), String> {
+        let file_name = "my_file.txt".to_owned();
+        let e = ParseFileNameError::from(file_name.clone());
+
+        assert_eq!(e.file_name, file_name);
+        Ok(())
+    }
 }
