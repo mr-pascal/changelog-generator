@@ -6,7 +6,6 @@ rust-version = "1.64.0"
 
 [dependencies]
 clap = { version= "4.0.18", features = ["derive"] }
-colored = "2.0.0"
 walkdir = "2.3.2"
 
 [build.env]

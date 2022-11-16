@@ -1,4 +1,3 @@
-use colored::Colorize;
 use std::error::Error;
 use std::fmt;
 
@@ -11,8 +10,7 @@ impl fmt::Display for ParseFileNameError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}: '{}' doesn't match the pattern! (<TICKET_NUMBER>_<SECTION>_...)",
-            "ERROR".red(),
+            "ERROR: '{}' doesn't match the pattern! (<TICKET_NUMBER>_<SECTION>_...)",
             self.file_name
         )
     }
@@ -51,7 +49,9 @@ mod tests {
     fn test_fmt() -> Result<(), String> {
         let e = ParseFileNameError::new("my_file.txt".to_owned());
         let output = format!("{}", e);
-        let expected = "\u{1b}[31mERROR\u{1b}[0m: 'my_file.txt' doesn't match the pattern! (<TICKET_NUMBER>_<SECTION>_...)".to_owned();
+        let expected =
+            "ERROR: 'my_file.txt' doesn't match the pattern! (<TICKET_NUMBER>_<SECTION>_...)"
+                .to_owned();
         assert_eq!(output, expected);
         Ok(())
     }
