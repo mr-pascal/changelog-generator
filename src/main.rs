@@ -1,17 +1,21 @@
 mod file_entry;
+mod file_not_found_error;
 mod filesystem;
 mod parse_file_name_error;
 mod parser;
 mod utils;
 mod walker;
-use clap::Parser;
-use file_entry::{group_by_section, FileEntry};
-use filesystem::{read_file_to_string, write_string_to_file};
-use parser::{create_version_line, generate_lines};
-use utils::combine_lines;
-use walker::find_and_convert_changelogs;
 
 use crate::filesystem::remove_files;
+use clap::Parser;
+use file_entry::{group_by_section, FileEntry};
+use file_not_found_error::FileNotFoundError;
+use filesystem::{read_file_to_string, write_string_to_file};
+use parser::{create_version_line, generate_lines};
+use std::error::Error;
+use std::process::ExitCode;
+use utils::combine_lines;
+use walker::find_and_convert_changelogs;
 
 // Comand line arguments
 #[derive(Parser, Debug)]
@@ -39,12 +43,7 @@ struct Args {
     // TODO3: add optional date
 }
 
-fn main() {
-    // Parse aaaaaaaaa
-    let args = Args::parse();
-    // println!("Arguments:");
-    // println!("{:?}", args);
-
+fn run(args: Args) -> Result<(), Box<dyn Error>> {
     // Extract arguments
     let changelog_file_path = args.changelog_path;
     let changelogs_folder_path = args.folder_path;
@@ -64,7 +63,10 @@ fn main() {
     let combined_lines = combine_lines(lines);
     let version_line = create_version_line(new_version, date);
 
-    let old_changelog_content = read_file_to_string(changelog_file_path.clone()).unwrap(); // TODO2: Error handling
+    let old_changelog_content = read_file_to_string(changelog_file_path.clone())
+        .ok()
+        .ok_or_else(|| FileNotFoundError::new(changelog_file_path.clone()))?;
+
     let split_pattern = "\n## ";
     let mut splitted: Vec<&str> = old_changelog_content.splitn(2, split_pattern).collect();
 
@@ -89,4 +91,20 @@ fn main() {
 
         // TODO3: Output the files that were deleted
     }
+    Ok(())
+}
+fn main() -> Result<ExitCode, Box<dyn Error>> {
+    let args = Args::parse();
+    println!("\n");
+    match run(args) {
+        Ok(_) => {
+            println!("Everything should be fine... ;-) ")
+        }
+        Err(e) => {
+            eprintln!("{}", e);
+            return Ok(ExitCode::FAILURE);
+        }
+    }
+
+    Ok(ExitCode::SUCCESS)
 }
