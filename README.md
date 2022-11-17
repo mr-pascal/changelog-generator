@@ -1,3 +1,6 @@
+[![codecov](https://codecov.io/gh/mr-pascal/changelog-generator/branch/master/graph/badge.svg?token=0I3CR21EFZ)](https://codecov.io/gh/mr-pascal/changelog-generator)
+
+
 # Changelog Generator
 
 This is a small tool to provide develoeprs a conflict free chagenlog experience.
