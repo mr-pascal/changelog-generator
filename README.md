@@ -5,6 +5,8 @@
 This is a small tool to provide develoeprs a conflict free chagenlog experience.
 
 > :warning: Disclaimer: This tool is still highly under development and CLI options, as well as functionality is prone to change in the future. If you have any questions or issues, please generate an issue for it.
+BUT the general functionality is already available and can be checked out in the `examples` section.
+
 
 
 ### The issue & how it's solved
